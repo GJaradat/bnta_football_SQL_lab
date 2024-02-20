@@ -23,57 +23,72 @@ SELECT name FROM divisions WHERE country = 'Scotland';
 4) Find the value of the `code` for the `Bundesliga` division. Use that code to find out how many matches Freiburg have played in that division. HINT: You will need to query both tables
 
 ```sql
-SELECT COUNT(*) FROM matches WHERE 
-(hometeam = 'Freiburg' OR awayteam = 'Freiburg') 
+SELECT COUNT(*) FROM matches 
+WHERE (hometeam = 'Freiburg' OR awayteam = 'Freiburg') 
 AND (division_code = (SELECT code FROM divisions WHERE name = 'Bundesliga'));
 ```
 
 5)  Find the teams which include the word "City" in their name. HINT: Not every team has been entered into the database with their full name, eg. `Norwich City` are listed as `Norwich`. If your query is correct it should return four teams.
 
 ```sql
-<!-- Copy solution here -->
-
-
+SELECT DISTINCT hometeam
+FROM matches 
+WHERE hometeam LIKE '%City%';
 ```
 
 6) How many different teams have played in matches recorded in a French division?
 
 ```sql
-<!-- Copy solution here -->
-
-
+SELECT DISTINCT hometeam FROM matches WHERE division_code = 
+(SELECT code FROM divisions WHERE country = 'France' LIMIT 1)
 ```
 
 7) Have Huddersfield played Swansea in any of the recorded matches?
 
 ```sql
-<!-- Copy solution here -->
-
-
+SELECT *
+FROM matches 
+WHERE id = ANY(
+	SELECT id
+	FROM matches
+	WHERE (hometeam = 'Huddersfield' AND awayteam = 'Swansea')
+	OR (hometeam = 'Swansea' AND awayteam = 'Huddersfield'));
 ```
 
 8) How many draws were there in the `Eredivisie` between 2010 and 2015?
 
 ```sql
-<!-- Copy solution here -->
-
-
+SELECT COUNT(*) FROM matches 
+WHERE division_code = (SELECT code FROM divisions WHERE name = 'Eredivisie')
+AND season BETWEEN 2010 AND 2015
+AND fthg = ftag;
 ```
 
 9) Select the matches played in the Premier League in order of total goals scored (`fthg` + `ftag`) from highest to lowest. When two matches have the same total the match with more home goals (`fthg`) should come first. 
 
 ```sql
-<!-- Copy solution here -->
-
-
+SELECT *
+FROM matches 
+ORDER BY (fthg+ftag) DESC ,fthg DESC;
 ```
 
 10) Find the name of the division in which the most goals were scored in a single season and the year in which it happened.
 
 ```sql
-<!-- Copy solution here -->
+SELECT division_code, season
+FROM (
+	SELECT division_code, season, SUM(fthg + ftag) AS goals
+    FROM matches
+    GROUP BY division_code, season) 
+AS best
 
-
+WHERE goals = (
+    SELECT MAX(goals)
+    FROM (
+        SELECT division_code, season, SUM(fthg + ftag) AS goals
+        FROM matches
+        GROUP BY division_code, season) 
+    AS max_goals);
 ```
 
 ### Useful Resources
